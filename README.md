@@ -1,8 +1,8 @@
-# Raspberry-pi-playground 
+# Raspberry-pi-playground
 
 ROS Raspberry Pi 3 image file (Ubuntu Mate Xenial 16.04 and ROS Kinetic) is downloaded from [German Robotics](http://www.german-robot.com/2016/05/26/raspberry-pi-sd-card-image/).
 
-* SSH of Ubuntu Mate is disabled with a default setting. 
+* SSH of Ubuntu Mate is disabled with a default setting.
 To turn it on, put `ssh` file on boot directory.
 * Tools you need to use raspberry pi
    * Nodejs tools
@@ -13,14 +13,14 @@ To turn it on, put `ssh` file on boot directory.
      * virtualenv - a tool to isolate application specific dependencies from a shared Python installation.
 
 ## Communication
-  ### [__blupy__](https://github.com/IanHarvey/bluepy)- Python interface to Bluetooth LE on Linux 
+  ### [__blupy__](https://github.com/IanHarvey/bluepy)- Python interface to Bluetooth LE on Linux
 [documentation-bluepy](http://ianharvey.github.io/bluepy-doc/)<br>
 Installation from the source and buil locally
 
 ```bash  
-    $ git clone https://github.com/IanHarvey/bluepy.git 
-    $ cd bluepy 
-    $ python setup.py build 
+    $ git clone https://github.com/IanHarvey/bluepy.git
+    $ cd bluepy
+    $ python setup.py build
     $ sudo python setup.py install
  ```
 Command-line tools from _BlueZ_ is good for debugging.<br>
@@ -38,7 +38,7 @@ Type `exit` to get out of bluez command line mode <br>
 ### bluepy mini-tutorial
 * #### scan example
 To scan ble devices <br>
-`$ sudo blescan` <br> 
+`$ sudo blescan` <br>
 python code : [scanExample.py](https://github.com/bgloh/Raspberry-pi-playground/blob/master/bluepy/scanExample.py) <br>
 
 ```python
@@ -60,11 +60,11 @@ devices = scanner.scan(10.0)
 Run it using python interactive mode <br>
 `$ python -i scanExample.py ` <br>
 Objects `devices` contains all info. about scanned ble devices.<br><br>
-To find the name of a first device from scanned device objects 
+To find the name of a first device from scanned device objects
 
-```python 
+```python
 name = devices[1].getValueText(9); print("name: ",name)
-``` 
+```
 
 To find the name of a second device from scanned device objects  <br>
 
@@ -104,7 +104,7 @@ sensorOff = struct.pack("B", 0x00)
 #Accelerometer sensor ble info of cc2540
 svcUUID  = _TI_UUID(0xAA10) # accelerometor service uuid
 dataUUID = _TI_UUID(0xAA11) # accelerometor data uuid
-confUUID = _TI_UUID(0xAA12) # accelerometer configuration uuid 
+confUUID = _TI_UUID(0xAA12) # accelerometer configuration uuid
 
 
 # connect
@@ -138,8 +138,20 @@ confChar.write(sensorOff)
 device.disconnect()
 
 ```
+**code explanation**
 
-* #### notification example 
+Python struct package allows data type conversion between python data type and C data type. For detailed info, refer to [python struct library docs](https://docs.python.org/2/library/struct.html).
+```Python
+sensorOn  = struct.pack("B", 0x01)
+```
+Encode 4 byte UUID into TI UUID
+
+```python
+svcUUID  = _TI_UUID(0xAA10)
+```
+
+
+* #### notification example
 python code : [notificationExample.py](https://github.com/bgloh/Raspberry-pi-playground/blob/master/bluepy/notificationExample.py) <br>
 
 To run `sudo python notificationExample.py`
@@ -165,7 +177,7 @@ class mDelegate(DefaultDelegate):
 		# convert C-type into python value : 'bbb' => singed char
         accRawData = struct.unpack('bbb',data)
         print(accRawData)
-        
+
 
 # Initialisation  -------
 # encoding TI uuid
@@ -186,7 +198,7 @@ notificationOff = struct.pack('<bb', 0x00, 0x00)
 #Accelerometer sensor ble info of cc2540
 svcUUID  = _TI_UUID(0xAA10) # accelerometor service uuid
 dataUUID = _TI_UUID(0xAA11) # accelerometor data uuid
-confUUID = _TI_UUID(0xAA12) # accelerometer configuration uuid 
+confUUID = _TI_UUID(0xAA12) # accelerometer configuration uuid
 
 
 p = Peripheral( sensorTagMACaddress )
@@ -216,6 +228,31 @@ while True:
     # Perhaps do something else here
 ```
 
+**code explanation** <br>
+To **enable notification** from ble peripherals, notification must be enabled by writing to a special characteristic configuration. The SensorTag can be configured to send notifications for every sensor by writing **“01 00”** to the characteristic configuration **< GATT_CLIENT_CHAR_CFG_UUID>** whose UUID is **0x2902** for the corresponding sensor data, the data is then sent as soon as the data has been updated(source: [TI cc2540 sensortag wiki](http://processors.wiki.ti.com/index.php/SensorTag_User_Guide)).<br>
+*`<bb` means little-endian binary encoding*.
+```python
+notificationOn = struct.pack('<bb', 0x01, 0x00)
+notificationOff = struct.pack('<bb', 0x00, 0x00)
+notifyDescriptor = svc.getDescriptors(forUUID=0x2902)[0]
+notifyDescriptor.write(notificationOn)
+```
+If notafication is sucessful and subscribed data is updated, the new data is available in callback class named **"mDelegate()"**. `data` variable holds new update data and `cHandle` has integer identification number for updated data field. Integer id. no. for `accelerometer data` is `48`.  
 
+```Python
+class mDelegate(DefaultDelegate):
+    def __init__(self):
+        DefaultDelegate.__init__(self)
+        # ... initialise here
 
-     
+    def handleNotification(self, cHandle, data):
+        # ... perhaps check cHandle
+        # ... process 'data'
+        if cHandle==48:
+            print 'accelerometer data'
+        # read sensor value
+        data = dataChar.read()
+        # convert C-type into python value : 'bbb' => singed char
+        accRawData = struct.unpack('bbb',data)
+        print(accRawData)
+```
