@@ -24,7 +24,7 @@ class sensorBase:
         self.service = self.periph.getServiceByUUID(self.svcUUID)
         self.confChar = self.service.getCharacteristics(self.confUUID)[0]
         self.dataChar = self.service.getCharacteristics(self.dataUUID)[0]
-        self.enabled = self.confChar.write(self.sensorOn)
+        self.confChar.write(self.sensorOn)
     def read(self):
         return self.dataChar.read()
     def readSetting(self):

@@ -11,14 +11,14 @@ class mDelegate(DefaultDelegate):
     def handleNotification(self, cHandle, data):
     	# ... perhaps check cHandle
         # ... process 'data'
-        if cHandle==48:
+        if cHandle == 48:
         	print 'accelerometer data'
     	# read sensor value
     	data = dataChar.read()
 		# convert C-type into python value : 'bbb' => singed char
         accRawData = struct.unpack('bbb',data)
         print(accRawData)
-        
+
 
 # Initialisation  -------
 # encoding TI uuid
@@ -39,7 +39,7 @@ notificationOff = struct.pack('<bb', 0x00, 0x00)
 #Accelerometer sensor ble info of cc2540
 svcUUID  = _TI_UUID(0xAA10) # accelerometor service uuid
 dataUUID = _TI_UUID(0xAA11) # accelerometor data uuid
-confUUID = _TI_UUID(0xAA12) # accelerometer configuration uuid 
+confUUID = _TI_UUID(0xAA12) # accelerometer configuration uuid
 
 
 p = Peripheral( sensorTagMACaddress )
