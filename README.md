@@ -60,6 +60,17 @@ devices = scanner.scan(10.0)
 Run it using python interactive mode <br>
 `$ python -i scanExample.py ` <br>
 Objects `devices` contains all info. about scanned ble devices.<br><br>
+
+To get the scan result
+```python
+scanData = devices[1].getScanData()
+```
+output : <br>
+```python
+[(1, 'Flags', u'06'), (3, 'Complete 16b Services', u'0f18'), (9, 'Complete Local Name', u'EST'), (22, '16b Service Data', u'0a186f5c2099e0c2b66f5c2099'), (255, 'Manufacturer', u'4c000215b9407f30f5f8466eaff925556b57fe6d5c6f9920b6')]
+```
+
+
 To find the name of a first device from scanned device objects
 
 ```python
