@@ -58,7 +58,7 @@ scanner = Scanner().withDelegate(ScanDelegate())
 devices = scanner.scan(10.0)
 ```
 Run it using python interactive mode <br>
-`$ python -i scanExample.py ` <br>
+`$ sudo python -i scanExample.py ` <br>
 Objects `devices` contains all info. about scanned ble devices.<br><br>
 
 To get the scan result
